@@ -1,0 +1,33 @@
+name: Long-running Workflow with State Checkpoint
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  long_running_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Restore State if it exists
+      - name: Restore State
+        uses: actions/cache@v3
+        id: restore_state
+        with:
+          path: ./state-data  # Local directory to save/load state
+          key: long-running-state-${{ github.run_id }}  # Unique key for the cache
+
+      # Step 2: Run the Long-running Task
+      - name: Run Task with Checkpoints
+        run: |
+          mkdir -p ./state-data
+          echo "Processing step 1..."
+          sleep 10  # Simulate long-running step
+          echo "Step 1 completed" > ./state-data/checkpoint.txt
+          echo "Saving checkpoint after step 1"
+
+      # Step 3: Save State After Each Checkpoint
+      - name: Save Checkpoint
+        uses: actions/cache@v3
+        with:
+          path: ./state-data
+          key: long-running-state-${{ github.run_id }}
